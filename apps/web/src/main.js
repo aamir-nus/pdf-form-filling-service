@@ -107,29 +107,74 @@ function fieldInput(f, viewport) {
   const top = Math.min(r[1], r[3]);
   const w = Math.max(Math.abs(r[2] - r[0]), 10);
   const h = Math.max(Math.abs(r[3] - r[1]), 14);
-  const el = document.createElement('input');
-  el.className = 'field-input';
-  el.dataset.name = f.name;
-  el.style.left = left + 'px';
-  el.style.top = top + 'px';
+
   if (f.type === 'checkbox') {
+    const el = document.createElement('input');
     el.type = 'checkbox';
+    el.className = 'field-input';
+    el.dataset.name = f.name;
     const initial = f.value !== null && f.value !== false && f.value !== 'Off';
     el.checked = initial;
     el.dataset.initial = String(initial);
     el.addEventListener('change', () => {
       el.classList.toggle('override', String(el.checked) !== el.dataset.initial);
     });
+    el.style.left = left + 'px';
+    el.style.top = top + 'px';
     el.style.width = Math.min(w, 20) + 'px';
     el.style.height = Math.min(h, 20) + 'px';
-  } else {
-    el.type = 'text';
-    if (f.value) el.value = String(f.value);
-    el.placeholder = f.name;
-    el.style.width = w + 'px';
-    el.style.height = h + 'px';
+    return el;
   }
+
+  // Comb field: one character per cell across max_len cells.
+  if (f.comb && f.max_len) {
+    const wrap = document.createElement('div');
+    wrap.className = 'comb-field';
+    wrap.style.left = left + 'px';
+    wrap.style.top = top + 'px';
+    wrap.style.width = w + 'px';
+    wrap.style.height = h + 'px';
+    const initial = f.value ? String(f.value) : '';
+    for (let i = 0; i < f.max_len; i++) {
+      const c = document.createElement('input');
+      c.type = 'text';
+      c.maxLength = 1;
+      c.className = 'field-input comb-cell';
+      c.placeholder = ' ';
+      c.value = initial[i] || '';
+      c.dataset.name = f.name;
+      c.dataset.comb = '1';
+      c.dataset.cell = i;
+      wireCombCell(c);
+      wrap.appendChild(c);
+    }
+    return wrap;
+  }
+
+  const el = document.createElement('input');
+  el.type = 'text';
+  el.className = 'field-input';
+  el.dataset.name = f.name;
+  el.placeholder = ' ';
+  if (f.value) el.value = String(f.value);
+  if (f.max_len) el.maxLength = f.max_len;
+  el.style.left = left + 'px';
+  el.style.top = top + 'px';
+  el.style.width = w + 'px';
+  el.style.height = h + 'px';
   return el;
+}
+
+// Auto-advance comb cells: a character jumps to the next box, Backspace jumps back.
+function wireCombCell(c) {
+  c.addEventListener('input', () => {
+    if (c.value.length >= 1 && c.nextElementSibling) c.nextElementSibling.focus();
+  });
+  c.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace' && !c.value && c.previousElementSibling) {
+      c.previousElementSibling.focus();
+    }
+  });
 }
 
 $('add-text').addEventListener('click', () => {
@@ -223,9 +268,20 @@ pagesEl.addEventListener('drop', (e) => {
 $('download').addEventListener('click', async () => {
   if (!state.docId) return;
   const fields = {};
+  const comb = {};
   document.querySelectorAll('.field-input').forEach((el) => {
-    const val = el.type === 'checkbox' ? el.checked : el.value;
-    if (el.type === 'checkbox' ? val : val.trim() !== '') fields[el.dataset.name] = val;
+    const name = el.dataset.name;
+    if (el.type === 'checkbox') {
+      fields[name] = el.checked; // send bool always so unchecking clears it
+    } else if (el.dataset.comb) {
+      (comb[name] ||= [])[+el.dataset.cell] = el.value || '';
+    } else if (el.value.trim() !== '') {
+      fields[name] = el.value;
+    }
+  });
+  Object.entries(comb).forEach(([name, arr]) => {
+    const joined = arr.join('');
+    if (joined.trim()) fields[name] = joined;
   });
   const overlays = [];
   for (let i = 0; i < state.fabrics.length; i++) {

@@ -29,6 +29,7 @@ def read_meta(data: bytes) -> tuple[list[PageDef], list[FieldDef]]:
         h = page.rect.height
         pages.append(PageDef(width=page.rect.width, height=h))
         for w in page.widgets():
+            maxlen = w.text_maxlen or None
             fields.append(
                 FieldDef(
                     name=w.field_name or "",
@@ -36,6 +37,8 @@ def read_meta(data: bytes) -> tuple[list[PageDef], list[FieldDef]]:
                     page=i,
                     rect=_mupdf_rect_to_pdf(w.rect, h),
                     value=w.field_value,
+                    max_len=maxlen,
+                    comb=bool(maxlen and w.field_flags & (1 << 24)),
                 )
             )
     doc.close()

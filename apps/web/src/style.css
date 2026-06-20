@@ -26,21 +26,27 @@ h1 { font-size: 18px; margin: 0 0 8px; }
 .pdf-layer { position: absolute; left: 0; top: 0; }
 .page-wrap .canvas-container { position: absolute !important; left: 0; top: 0; z-index: 1; }
 .field-layer { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
-/* Idle: translucent highlight, text invisible so the PDF's painted value shows through.
-   Focus: becomes a solid editable input (Adobe/online-editor click-to-fill pattern). */
+/* Text fields: translucent highlight when empty; near-opaque + dark text when filled
+   (so typed/pre-filled values stay visible after blur, and cover any PDF paint). */
 .field-input {
   position: absolute; pointer-events: auto; cursor: text;
   border: 1px solid rgba(59,130,246,.35); border-radius: 2px;
-  background: rgba(59,130,246,.12);
-  color: transparent; font-size: 14px; padding: 0 2px; outline: none;
+  background: rgba(59,130,246,.12); color: #111; font-size: 14px; padding: 0 2px; outline: none;
 }
-.field-input::placeholder { color: transparent; }
+.field-input::placeholder { color: transparent; }                 /* empty: no name text */
+.field-input:not(:placeholder-shown) { background: rgba(255,255,255,.9); } /* filled: readable */
 .field-input:hover { background: rgba(59,130,246,.20); border-color: rgba(59,130,246,.5); }
 .field-input:focus {
   background: #fff; color: #111; border-color: #3b82f6;
   box-shadow: 0 0 0 2px rgba(59,130,246,.25); z-index: 3;
 }
-.field-input:focus::placeholder { color: #9aa1a8; }
+.comb-field { position: absolute; display: flex; pointer-events: auto; }
+.comb-cell {
+  position: relative; flex: 1 1 0; min-width: 0; border-radius: 0;
+  text-align: center; padding: 0; border-right: none;
+}
+.comb-cell:first-child { border-top-left-radius: 2px; border-bottom-left-radius: 2px; }
+.comb-cell:last-child { border-top-right-radius: 2px; border-bottom-right-radius: 2px; }
 /* Checkboxes: base is transparent so the PDF's painted box shows through (no overlap).
    .override draws our own box+check only once the user changes the state from the PDF. */
 .field-input[type='checkbox'] {

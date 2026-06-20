@@ -18,6 +18,8 @@ class FieldDef(BaseModel):
     page: int  # 0-indexed
     rect: list[float]  # [x0, y0, x1, y1] in PDF-spec points
     value: str | bool | None = None  # current field value (pre-fill)
+    max_len: int | None = None  # MaxLen (text fields); caps input length
+    comb: bool = False  # Comb flag -> one character per cell, max_len cells
 
 
 class DocumentMeta(BaseModel):
