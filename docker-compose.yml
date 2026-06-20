@@ -1,0 +1,18 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    ports:
+      - "7999:7999"
+
+  web:
+    build:
+      context: apps/web
+      dockerfile: Dockerfile
+    ports:
+      - "5172:5172"
+    environment:
+      - VITE_API_PROXY=http://api:7999
+    depends_on:
+      - api

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF Form Filler</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>PDF Form Filler</h1>
+      <div class="toolbar">
+        <label class="btn">Open PDF<input type="file" id="file" accept="application/pdf" hidden /></label>
+        <button id="add-text" disabled>Add text</button>
+        <label class="btn">Add image<input type="file" id="img" accept="image/*" hidden disabled /></label>
+        <button id="download" disabled>Download filled PDF</button>
+      </div>
+      <p class="hint">Tip: pick a page from the right panel to edit it. Drag &amp; drop an image onto the page.</p>
+    </header>
+    <main class="app">
+      <div id="pages" class="editor"></div>
+      <aside id="thumbs" class="thumbs" aria-label="Pages"></aside>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
