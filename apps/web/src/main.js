@@ -78,10 +78,12 @@ function fieldInput(f, viewport) {
   el.style.top = top + 'px';
   if (f.type === 'checkbox') {
     el.type = 'checkbox';
+    el.checked = f.value !== null && f.value !== false && f.value !== 'Off';
     el.style.width = Math.min(w, 20) + 'px';
     el.style.height = Math.min(h, 20) + 'px';
   } else {
     el.type = 'text';
+    if (f.value) el.value = String(f.value);
     el.placeholder = f.name;
     el.style.width = w + 'px';
     el.style.height = h + 'px';
