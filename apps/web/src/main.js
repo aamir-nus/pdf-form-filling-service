@@ -114,7 +114,12 @@ function fieldInput(f, viewport) {
   el.style.top = top + 'px';
   if (f.type === 'checkbox') {
     el.type = 'checkbox';
-    el.checked = f.value !== null && f.value !== false && f.value !== 'Off';
+    const initial = f.value !== null && f.value !== false && f.value !== 'Off';
+    el.checked = initial;
+    el.dataset.initial = String(initial);
+    el.addEventListener('change', () => {
+      el.classList.toggle('override', String(el.checked) !== el.dataset.initial);
+    });
     el.style.width = Math.min(w, 20) + 'px';
     el.style.height = Math.min(h, 20) + 'px';
   } else {
