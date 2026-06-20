@@ -20,6 +20,8 @@ class FieldDef(BaseModel):
     value: str | bool | None = None  # current field value (pre-fill)
     max_len: int | None = None  # MaxLen (text fields); caps input length
     comb: bool = False  # Comb flag -> one character per cell, max_len cells
+    on_state: str | None = None  # export value that selects a button field
+    # (checkbox="Yes"; radio=the option e.g. "Yes"/"No"). Sent back by the UI to fill it.
 
 
 class DocumentMeta(BaseModel):

@@ -49,4 +49,5 @@ See [CLAUDE.md](CLAUDE.md) for the full design, coordinate model, and gotchas.
 ## Known rendering notes
 
 - PDF.js paints each field's appearance onto the page, so overlays stay translucent to avoid double-rendering; checkboxes are transparent until changed.
+- Yes/No (option-pick) fields are radio groups — they render as clickable boxes grouped by field, so picking one option clears the others.
 - The editor scrolls internally (page fully reachable); the thumbnail panel scrolls independently.

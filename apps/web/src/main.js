@@ -108,16 +108,33 @@ function fieldInput(f, viewport) {
   const w = Math.max(Math.abs(r[2] - r[0]), 10);
   const h = Math.max(Math.abs(r[3] - r[1]), 14);
 
-  if (f.type === 'checkbox') {
+  if (f.type === 'checkbox' || f.type === 'radio') {
+    const isRadio = f.type === 'radio';
     const el = document.createElement('input');
     el.type = 'checkbox';
     el.className = 'field-input';
     el.dataset.name = f.name;
-    const initial = f.value !== null && f.value !== false && f.value !== 'Off';
+    el.dataset.onState = f.on_state || 'Yes';
+    el.dataset.radio = isRadio ? '1' : '0';
+    const onState = el.dataset.onState;
+    const initial = isRadio
+      ? String(f.value) === onState && f.value !== null && f.value !== false
+      : (f.value !== null && f.value !== false && f.value !== 'Off');
     el.checked = initial;
     el.dataset.initial = String(initial);
     el.addEventListener('change', () => {
-      el.classList.toggle('override', String(el.checked) !== el.dataset.initial);
+      const layer = el.closest('.field-layer');
+      if (isRadio && layer) {
+        // Radio group: selecting one deselects siblings and covers any
+        // PDF-baked dot by marking every option as overridden.
+        layer.querySelectorAll('[data-radio="1"]').forEach((s) => {
+          if (s.dataset.name !== el.dataset.name) return;
+          s.checked = s === el;
+          s.classList.add('override');
+        });
+      } else {
+        el.classList.toggle('override', String(el.checked) !== el.dataset.initial);
+      }
     });
     el.style.left = left + 'px';
     el.style.top = top + 'px';
@@ -272,7 +289,11 @@ $('download').addEventListener('click', async () => {
   document.querySelectorAll('.field-input').forEach((el) => {
     const name = el.dataset.name;
     if (el.type === 'checkbox') {
-      fields[name] = el.checked; // send bool always so unchecking clears it
+      if (el.dataset.radio === '1') {
+        if (el.checked) fields[name] = el.dataset.onState || 'Yes';
+      } else {
+        fields[name] = el.checked; // send bool always so unchecking clears it
+      }
     } else if (el.dataset.comb) {
       (comb[name] ||= [])[+el.dataset.cell] = el.value || '';
     } else if (el.value.trim() !== '') {
