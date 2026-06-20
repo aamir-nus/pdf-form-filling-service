@@ -35,6 +35,7 @@ def read_meta(data: bytes) -> tuple[list[PageDef], list[FieldDef]]:
                     type=_TYPE_MAP.get(w.field_type, "other"),
                     page=i,
                     rect=_mupdf_rect_to_pdf(w.rect, h),
+                    value=w.field_value,
                 )
             )
     doc.close()

@@ -17,6 +17,7 @@ class FieldDef(BaseModel):
     type: str  # text | checkbox | radio | list | combo | other
     page: int  # 0-indexed
     rect: list[float]  # [x0, y0, x1, y1] in PDF-spec points
+    value: str | bool | None = None  # current field value (pre-fill)
 
 
 class DocumentMeta(BaseModel):
