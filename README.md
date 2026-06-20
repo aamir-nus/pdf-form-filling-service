@@ -8,8 +8,8 @@ Locally hosted PDF form-filling service. Edit existing form fields and drop in t
 docker-compose up -d --build
 ```
 
-- Frontend: http://localhost:5173
-- API docs: http://localhost:8000/docs
+- Frontend: http://localhost:5172
+- API docs: http://localhost:7999/docs
 
 ```bash
 docker-compose logs -f   # follow logs
@@ -22,14 +22,14 @@ Backend (FastAPI, uv):
 
 ```bash
 uv sync
-uv run python3 -m api.app.main        # http://localhost:8000
+uv run python3 -m api.app.main        # http://localhost:7999
 ```
 
 Frontend (Vite, `apps/web`):
 
 ```bash
 npm --prefix apps/web install
-npm --prefix apps/web run dev         # http://localhost:5173
+npm --prefix apps/web run dev         # http://localhost:5172
 ```
 
 ## Architecture
