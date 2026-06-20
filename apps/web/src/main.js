@@ -7,10 +7,11 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 const API = '/api/v1';
 const SCALE = 1.5;
 
-const state = { docId: null, viewports: [], fabrics: [], activePage: 0 };
+const state = { docId: null, viewports: [], fabrics: [], pageWraps: [], activePage: 0 };
 
 const $ = (id) => document.getElementById(id);
 const pagesEl = $('pages');
+const thumbsEl = $('thumbs');
 
 $('file').addEventListener('change', (e) => {
   const f = e.target.files[0];
@@ -31,8 +32,10 @@ async function openPdf(file) {
 async function renderPdf(buf, fields) {
   const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
   pagesEl.innerHTML = '';
+  thumbsEl.innerHTML = '';
   state.viewports = [];
   state.fabrics = [];
+  state.pageWraps = [];
   for (let i = 0; i < pdf.numPages; i++) {
     const page = await pdf.getPage(i + 1);
     const viewport = page.getViewport({ scale: SCALE });
@@ -40,8 +43,10 @@ async function renderPdf(buf, fields) {
 
     const wrap = document.createElement('div');
     wrap.className = 'page-wrap';
+    wrap.style.width = viewport.width + 'px';
+    wrap.style.height = viewport.height + 'px';
     wrap.dataset.page = i;
-    wrap.addEventListener('click', () => (state.activePage = i));
+    wrap.style.display = 'none';
 
     const pdfCanvas = document.createElement('canvas');
     pdfCanvas.className = 'pdf-layer';
@@ -52,8 +57,7 @@ async function renderPdf(buf, fields) {
 
     const fEl = document.createElement('canvas');
     wrap.appendChild(fEl);
-    const fc = new fabric.Canvas(fEl, { width: viewport.width, height: viewport.height });
-    state.fabrics[i] = fc;
+    state.fabrics[i] = new fabric.Canvas(fEl, { width: viewport.width, height: viewport.height });
 
     const fl = document.createElement('div');
     fl.className = 'field-layer';
@@ -61,7 +65,37 @@ async function renderPdf(buf, fields) {
     wrap.appendChild(fl);
 
     pagesEl.appendChild(wrap);
+    state.pageWraps[i] = wrap;
+    thumbsEl.appendChild(thumbnail(i, pdfCanvas));
   }
+  setActivePage(0);
+}
+
+function thumbnail(i, srcCanvas) {
+  const item = document.createElement('button');
+  item.className = 'thumb';
+  item.dataset.page = i;
+  const tw = 150;
+  const th = Math.round(srcCanvas.height * (tw / srcCanvas.width));
+  const c = document.createElement('canvas');
+  c.width = tw;
+  c.height = th;
+  c.getContext('2d').drawImage(srcCanvas, 0, 0, tw, th);
+  const label = document.createElement('span');
+  label.textContent = 'Page ' + (i + 1);
+  item.append(c, label);
+  item.addEventListener('click', () => setActivePage(i));
+  return item;
+}
+
+function setActivePage(i) {
+  state.activePage = i;
+  state.pageWraps.forEach((w, idx) => {
+    if (w) w.style.display = idx === i ? '' : 'none';
+  });
+  thumbsEl.querySelectorAll('.thumb').forEach((t) =>
+    t.classList.toggle('active', +t.dataset.page === i),
+  );
 }
 
 function fieldInput(f, viewport) {

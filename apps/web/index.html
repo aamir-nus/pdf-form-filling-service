@@ -15,9 +15,12 @@
         <label class="btn">Add image<input type="file" id="img" accept="image/*" hidden disabled /></label>
         <button id="download" disabled>Download filled PDF</button>
       </div>
-      <p class="hint">Tip: drag &amp; drop an image onto any page. Click a page to make it active before adding text/images.</p>
+      <p class="hint">Tip: pick a page from the right panel to edit it. Drag &amp; drop an image onto the page.</p>
     </header>
-    <main id="pages"></main>
+    <main class="app">
+      <div id="pages" class="editor"></div>
+      <aside id="thumbs" class="thumbs" aria-label="Pages"></aside>
+    </main>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
