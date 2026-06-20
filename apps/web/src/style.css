@@ -7,10 +7,11 @@ h1 { font-size: 18px; margin: 0 0 8px; }
 .toolbar button:disabled, .btn:disabled { opacity: .5; cursor: default; }
 .hint { color: #6b7177; font-size: 12px; margin: 6px 0 0; }
 .app { display: flex; gap: 16px; align-items: flex-start; padding: 16px; }
-.editor { flex: 1; overflow: auto; display: flex; justify-content: center; }
+.editor { flex: 1; overflow: auto; display: flex; justify-content: safe center; }
 .thumbs {
-  width: 174px; flex: 0 0 174px; max-height: calc(100vh - 92px); overflow-y: auto;
+  width: 182px; flex: 0 0 182px; max-height: calc(100vh - 92px); overflow-y: auto;
   display: flex; flex-direction: column; gap: 8px; position: sticky; top: 70px;
+  background: #eceef1; border: 1px solid #c4c8ce; border-radius: 8px; padding: 8px;
 }
 .thumb {
   background: #fff; border: 2px solid #d0d3d9; border-radius: 6px; cursor: pointer;
