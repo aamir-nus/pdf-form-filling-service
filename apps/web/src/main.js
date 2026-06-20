@@ -7,7 +7,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 const API = '/api/v1';
 const SCALE = 1.5;
 
-const state = { docId: null, viewports: [], fabrics: [], pageWraps: [], activePage: 0 };
+const state = { docId: null, fileName: null, viewports: [], fabrics: [], pageWraps: [], activePage: 0 };
 
 const $ = (id) => document.getElementById(id);
 const pagesEl = $('pages');
@@ -25,6 +25,7 @@ async function openPdf(file) {
   if (!res.ok) return alert(`Upload failed: ${(await res.json()).detail}`);
   const meta = await res.json();
   state.docId = meta.id;
+  state.fileName = file.name;
   await renderPdf(await file.arrayBuffer(), meta.fields);
   for (const id of ['add-text', 'img', 'download']) $(id).disabled = false;
 }
@@ -141,6 +142,29 @@ function fieldInput(f, viewport) {
     el.style.width = Math.min(w, 20) + 'px';
     el.style.height = Math.min(h, 20) + 'px';
     return el;
+  }
+
+  // Combo/list ("select") field: render a dropdown of its choices.
+  if (f.type === 'combo' || f.type === 'list') {
+    const sel = document.createElement('select');
+    sel.className = 'field-input';
+    sel.dataset.name = f.name;
+    const blank = document.createElement('option');
+    blank.value = '';
+    blank.textContent = '';
+    sel.appendChild(blank);
+    (f.options || []).forEach((o) => {
+      const op = document.createElement('option');
+      op.value = o;
+      op.textContent = o;
+      if (String(f.value) === o) op.selected = true;
+      sel.appendChild(op);
+    });
+    sel.style.left = left + 'px';
+    sel.style.top = top + 'px';
+    sel.style.width = w + 'px';
+    sel.style.height = h + 'px';
+    return sel;
   }
 
   // Comb field: one character per cell across max_len cells.
@@ -325,9 +349,15 @@ $('download').addEventListener('click', async () => {
     body: JSON.stringify({ fields, overlays }),
   });
   if (!res.ok) return alert(`Fill failed: ${(await res.json()).detail}`);
+  // Filename: <orig name without .pdf>_filled_<HH:MM:SS><DD-MM-YYYY>.pdf
+  const base = (state.fileName || 'document').replace(/\.pdf$/i, '');
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  const ts = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}` +
+    `${p(d.getDate())}-${p(d.getMonth() + 1)}-${d.getFullYear()}`;
   const a = document.createElement('a');
   a.href = URL.createObjectURL(await res.blob());
-  a.download = 'filled.pdf';
+  a.download = `${base}_filled_${ts}.pdf`;
   a.click();
   URL.revokeObjectURL(a.href);
 });

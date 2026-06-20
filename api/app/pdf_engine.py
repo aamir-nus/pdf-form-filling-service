@@ -46,6 +46,12 @@ def read_meta(data: bytes) -> tuple[list[PageDef], list[FieldDef]]:
                 value = w.field_value == on_state
             else:
                 value = w.field_value
+            options = None
+            if ftype in (
+                pymupdf.PDF_WIDGET_TYPE_COMBOBOX,
+                pymupdf.PDF_WIDGET_TYPE_LISTBOX,
+            ):
+                options = list(w.choice_values or [])
             fields.append(
                 FieldDef(
                     name=w.field_name or "",
@@ -56,6 +62,7 @@ def read_meta(data: bytes) -> tuple[list[PageDef], list[FieldDef]]:
                     max_len=maxlen,
                     comb=bool(maxlen and w.field_flags & (1 << 24)),
                     on_state=on_state,
+                    options=options,
                 )
             )
     doc.close()

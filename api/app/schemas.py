@@ -22,6 +22,7 @@ class FieldDef(BaseModel):
     comb: bool = False  # Comb flag -> one character per cell, max_len cells
     on_state: str | None = None  # export value that selects a button field
     # (checkbox="Yes"; radio=the option e.g. "Yes"/"No"). Sent back by the UI to fill it.
+    options: list[str] | None = None  # choices for combo/list ("select") fields
 
 
 class DocumentMeta(BaseModel):
