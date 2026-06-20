@@ -57,7 +57,9 @@ async function renderPdf(buf, fields) {
 
     const fEl = document.createElement('canvas');
     wrap.appendChild(fEl);
-    state.fabrics[i] = new fabric.Canvas(fEl, { width: viewport.width, height: viewport.height });
+    const fc = new fabric.Canvas(fEl, { width: viewport.width, height: viewport.height });
+    state.fabrics[i] = fc;
+    wireContextMenu(fc);
 
     const fl = document.createElement('div');
     fl.className = 'field-layer';
@@ -112,7 +114,12 @@ function fieldInput(f, viewport) {
   el.style.top = top + 'px';
   if (f.type === 'checkbox') {
     el.type = 'checkbox';
-    el.checked = f.value !== null && f.value !== false && f.value !== 'Off';
+    const initial = f.value !== null && f.value !== false && f.value !== 'Off';
+    el.checked = initial;
+    el.dataset.initial = String(initial);
+    el.addEventListener('change', () => {
+      el.classList.toggle('override', String(el.checked) !== el.dataset.initial);
+    });
     el.style.width = Math.min(w, 20) + 'px';
     el.style.height = Math.min(h, 20) + 'px';
   } else {
@@ -152,6 +159,52 @@ function readDataUrl(file) {
     const r = new FileReader();
     r.onload = () => res(r.result);
     r.readAsDataURL(file);
+  });
+}
+
+// --- Delete overlays: keyboard (Del/Backspace) + right-click menu. ---
+// Guard so typing in field inputs / editing text never triggers deletion.
+function isTyping(e) {
+  const tag = (e.target.tagName || '').toLowerCase();
+  return tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Backspace' && e.key !== 'Delete') return;
+  if (isTyping(e)) return;
+  const fc = state.fabrics[state.activePage];
+  const obj = fc && fc.getActiveObject();
+  if (!obj || obj.isEditing) return;
+  e.preventDefault();
+  fc.remove(obj);
+  fc.discardActiveObject();
+  fc.requestRenderAll();
+});
+
+const ctxMenu = document.createElement('div');
+ctxMenu.className = 'ctx-menu';
+ctxMenu.innerHTML = '<button type="button">Delete</button>';
+document.body.appendChild(ctxMenu);
+let ctxFc = null, ctxObj = null;
+ctxMenu.querySelector('button').addEventListener('click', () => {
+  if (ctxFc && ctxObj) { ctxFc.remove(ctxObj); ctxFc.requestRenderAll(); }
+  ctxMenu.style.display = 'none';
+});
+document.addEventListener('click', () => (ctxMenu.style.display = 'none'));
+document.addEventListener('contextmenu', (e) => {
+  if (e.target.closest('.canvas-container')) e.preventDefault(); // suppress browser menu over fabric
+});
+
+function wireContextMenu(fc) {
+  fc.on('mouse:down', (opt) => {
+    const right = opt.e.button === 2 || opt.e.which === 3;
+    if (!right || !opt.target) return;
+    opt.e.preventDefault();
+    ctxFc = fc;
+    ctxObj = opt.target;
+    ctxMenu.style.display = 'block';
+    ctxMenu.style.left = opt.e.clientX + 'px';
+    ctxMenu.style.top = opt.e.clientY + 'px';
   });
 }
 
